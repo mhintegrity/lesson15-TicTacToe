@@ -1,4 +1,4 @@
-// Mark Harder, Basic Tic Tac Toe, Lesson 12, MHIntegrity
+// Mark Harder, Basic Tic Tac Toe, Lesson 15, MHIntegrity
 // setup the inital state of the board by creating our gameState variable.
 // so that we can restart a new game by reinitializing the state, use a function.
 // Games can be either turn based on realtime, this game is turn based.
@@ -177,64 +177,54 @@ function CheckForWinner() {
 // Play the next players move
 function AIPlayerMove() {
     let PlayLocations = [];
-    let PlayLocation = { row: 1, col: 1};
-    // Example array object { row: null, col: null };
+    let PlayLocation = { row: null, col: null };
     let NextPlayer = gameState.Next;
 
-    // 1. Check the next move for a win location.
-    //  Test all empty locations to see if the player can win using it.
+    // Strategy Steps - assumption  of all steps is that we test only empty locations
 
-    // 2. Check for a block of the other user, next location
+    // 1. Look for a winning location, by testing for a win.
+
+    // 2. Look for a blocking move, by testing as other players for a win.
 
     // 3. If the center location is available, choose it.
+    if (PlayLocations.length === 0 && gameState.board[1][1] === "") {
+        PlayLocations.push({ row: 1, col: 1 });
+    };
 
-    // 4. TODO: Setup for a double potential win.
+    // 4. Setup for a double potential win.
 
-    // 5. random select empty cell
+    // 5. randomly select a location
     if (PlayLocations.length === 0) {
-        // return an array of possible play locations
         PlayLocations = gameState.board.reduce((accumulator, rowArray, rowIndex) => {
             // Call map on the rowArray to add any empty location to an array we are returning.
-            let tempPL = rowArray.map((cell, colIndex) => {
-                if (cell === "") {
-                    return {
-                        row: rowIndex,
-                        col: colIndex
-                    };
-                } else {
-                    return null;
-                };
-            }).filter( playLoc => {
-                return playLoc !== null;
-            });
-            return accumulator.concat(tempPL);
+            return rowArray.reduce( (cellAccumulator, cell, colIndex) => {
+                return (cell === "") ? cellAccumulator.concat( { row: rowIndex, col: colIndex} ) : cellAccumulator;
+            }, accumulator );
         }, []);
-    };
+    }
     if (PlayLocations.length > 0) {
         // randomly choose a location from your choices
         let index = Math.floor(Math.random() * PlayLocations.length);
         PlayLocation = { row: PlayLocations[index].row, col: PlayLocations[index].col };
-    };
 
-    // asign the ai location
-    gameState.board[PlayLocation.row][PlayLocation.col] = NextPlayer;
-    // change the next X or O
-    gameState.Next = gameState.Next === "X" ? "O" : "X";
-    // remove the event from the grid so there is no new event
-    document.getElementById(`${PlayLocation.row}${PlayLocation.col}`).removeEventListener('click', MainGameLogic);
-
-    // Check to see if we have a winner
-    if (CheckForWinner()) {
-        // After we have a winner remove the events for remaining squares so they don't fire.
-        for (let row = 0; row <= 2; row++) {
-            for (let col = 0; col <= 2; col++) {
-                if (gameState.board[row][col] === "") {
-                    document.getElementById(`${row}${col}`).removeEventListener('click', MainGameLogic);
+        // asign the ai location
+        gameState.board[PlayLocation.row][PlayLocation.col] = NextPlayer;
+        // change the next X or O
+        gameState.Next = gameState.Next === "X" ? "O" : "X";
+        // remove the event from the grid so there is no new event
+        document.getElementById(`${PlayLocation.row}${PlayLocation.col}`).removeEventListener('click', MainGameLogic);
+        // Check to see if we have a winner
+        if (CheckForWinner()) {
+            // After we have a winner remove the events for remaining squares so they don't fire.
+            for (let row = 0; row <= 2; row++) {
+                for (let col = 0; col <= 2; col++) {
+                    if (gameState.board[row][col] === "") {
+                        document.getElementById(`${row}${col}`).removeEventListener('click', MainGameLogic);
+                    }
                 }
             }
-        }
+        };
+        SaveBoardState();
     };
-
-    SaveBoardState();
     UpdateScreenState();
 }
